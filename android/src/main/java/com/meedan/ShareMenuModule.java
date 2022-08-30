@@ -15,9 +15,14 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.content.ContentResolver;
+import androidx.documentfile.provider.DocumentFile;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.facebook.react.bridge.WritableNativeMap;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
 
 import java.util.ArrayList;
 
@@ -58,15 +63,25 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
     WritableMap data = Arguments.createMap();
     data.putString(MIME_TYPE_KEY, type);
 
+    ContentResolver cR = getReactApplicationContext().getContentResolver();
+
     if (Intent.ACTION_SEND.equals(action)) {
       if ("text/plain".equals(type)) {
-        data.putString(DATA_KEY, intent.getStringExtra(Intent.EXTRA_TEXT));
+        WritableNativeMap writableNativeMap = new WritableNativeMap();
+        writableNativeMap.putString("data",intent.getStringExtra(Intent.EXTRA_TEXT));
+        writableNativeMap.putString("mimeType","text/plain");
+        data.putMap(DATA_KEY, writableNativeMap);
         return data;
       }
 
       Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       if (fileUri != null) {
-        data.putString(DATA_KEY, fileUri.toString());
+        String fileName = DocumentFile.fromSingleUri(this.getReactApplicationContext(),fileUri).getName();
+        WritableNativeMap writableNativeMap = new WritableNativeMap();
+        writableNativeMap.putString("data",fileUri.toString());
+        writableNativeMap.putString("mimeType",cR.getType(fileUri));
+        writableNativeMap.putString("fileName",fileName);
+        data.putMap(DATA_KEY, writableNativeMap);
         return data;
       }
     } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
@@ -74,7 +89,12 @@ public class ShareMenuModule extends ReactContextBaseJavaModule implements Activ
       if (fileUris != null) {
         WritableArray uriArr = Arguments.createArray();
         for (Uri uri : fileUris) {
-          uriArr.pushString(uri.toString());
+          String fileName = DocumentFile.fromSingleUri(this.getReactApplicationContext(),uri).getName();
+          WritableNativeMap writableNativeMap = new WritableNativeMap();
+          writableNativeMap.putString("data",uri.toString());
+          writableNativeMap.putString("mimeType",cR.getType(uri));
+          writableNativeMap.putString("fileName",fileName);
+          uriArr.pushMap(writableNativeMap);
         }
         data.putArray(DATA_KEY, uriArr);
         return data;

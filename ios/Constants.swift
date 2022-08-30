@@ -42,6 +42,7 @@ public let COLOR_TRANSPARENT_KEY = "Transparent"
 
 public let MIME_TYPE_KEY =  "mimeType"
 public let DATA_KEY =  "data"
+public let FILE_NAME_KEY = "fileName"
 public let EXTRA_DATA_KEY =  "extraData"
 
 // MARK: Events

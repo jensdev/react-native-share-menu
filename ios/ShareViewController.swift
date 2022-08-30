@@ -184,6 +184,7 @@ class ShareViewController: SLComposeServiceViewController {
       let mimeType = url.extractMimeType()
       let fileExtension = url.pathExtension
       let fileName = UUID().uuidString
+      let fileRealName = url.lastPathComponent
       let filePath = groupFileManagerContainer
         .appendingPathComponent("\(fileName).\(fileExtension)")
       
@@ -192,7 +193,7 @@ class ShareViewController: SLComposeServiceViewController {
         return
       }
       
-      self.sharedItems.append([DATA_KEY: filePath.absoluteString, MIME_TYPE_KEY: mimeType])
+      self.sharedItems.append([FILE_NAME_KEY:fileRealName, DATA_KEY: filePath.absoluteString, MIME_TYPE_KEY: mimeType])
       semaphore.signal()
     }
   }
@@ -223,7 +224,8 @@ class ShareViewController: SLComposeServiceViewController {
     }
     
     let url = URL(string: urlScheme)
-    let selectorOpenURL = sel_registerName("openURL:")
+    let string = UnsafePointer(Array("openURL:".utf8CString))
+    let selectorOpenURL = sel_registerName(string)
     var responder: UIResponder? = self
     
     while responder != nil {
